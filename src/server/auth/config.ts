@@ -1,6 +1,7 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { db } from "@/server/db";
 import {
@@ -9,6 +10,7 @@ import {
   users,
   verificationTokens,
 } from "@/server/db/schema";
+import { env } from "@/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -38,15 +40,35 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
-    DiscordProvider,
+    GoogleProvider({
+      clientId: env.AUTH_GOOGLE_ID,
+      clientSecret: env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
+    }),
+    // You can also add a credentials provider for email/password login
+    // Uncomment when you're ready to implement it
+    /*
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        // Add your own logic here to validate credentials
+        // For now, this is just a placeholder
+        return null;
+      }
+    }),
+    */
     /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
+     * ...add more providers here as needed.
      */
   ],
   adapter: DrizzleAdapter(db, {
@@ -63,5 +85,13 @@ export const authConfig = {
         id: user.id,
       },
     }),
+  },
+  pages: {
+    // Customize these URLs to point to your custom authentication pages
+    // when you create them
+    // signIn: '/auth/signin',
+    // signOut: '/auth/signout',
+    // error: '/auth/error',
+    // newUser: '/auth/new-user'
   },
 } satisfies NextAuthConfig;
