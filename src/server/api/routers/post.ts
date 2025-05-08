@@ -5,7 +5,9 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { posts } from "@/server/db/schema";
+
+// Remove this line:
+// import { posts } from "@/server/db/schema";
 
 export const postRouter = createTRPCRouter({
   hello: publicProcedure
@@ -19,18 +21,19 @@ export const postRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(posts).values({
-        name: input.name,
-        createdById: ctx.session.user.id,
-      });
+      // Remove database operation
+      console.log(`Creating post: ${input.name} by ${ctx.session.user.id}`);
+      return { success: true };
     }),
 
   getLatest: protectedProcedure.query(async ({ ctx }) => {
-    const post = await ctx.db.query.posts.findFirst({
-      orderBy: (posts, { desc }) => [desc(posts.createdAt)],
-    });
-
-    return post ?? null;
+    // Return mock data
+    return {
+      id: "mock-post-id",
+      name: "Example Post",
+      createdAt: new Date(),
+      createdById: ctx.session.user.id,
+    };
   }),
 
   getSecretMessage: protectedProcedure.query(() => {
