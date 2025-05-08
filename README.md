@@ -1,29 +1,87 @@
-# Create T3 App
+# Meditation Timer App
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A mindful meditation timer built with modern web technologies to help you maintain a consistent meditation practice.
 
-## What's next? How do I make an app with this?
+## Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- ⏱️ **Customizable Timer**: Set your meditation duration and preparation countdown
+- 🔊 **Ambient Sounds**: Choose from various white noise and nature sounds
+- 📊 **Meditation Tracking**: Track your daily and weekly meditation progress
+- 🏆 **Goals**: Set personal meditation goals and track your progress
+- 📅 **Scheduling**: Plan future meditation sessions with reminders
+- 🖼️ **Visual Customization**: Choose different background images for your meditation
+- 🔒 **User Accounts**: Save your preferences and track your progress across devices
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Technology Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+This project uses the [T3 Stack](https://create.t3.gg/):
 
-## Learn More
+- **Framework**: [Next.js 15](https://nextjs.org)
+- **Authentication**: [Auth.js](https://authjs.dev) with Google OAuth
+- **API**: [tRPC](https://trpc.io) for type-safe API endpoints
+- **Database**: PostgreSQL with [Drizzle ORM](https://orm.drizzle.team) for type-safe queries
+- **Styling**: [Tailwind CSS](https://tailwindcss.com) for responsive design
+- **Deployment**: [Vercel](https://vercel.com) for hosting and serverless functions
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## Getting Started
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### For Users
+Visit the live app at [https://meditation-timer-eta.vercel.app/](https://meditation-timer-dashs-projects-1fd18fea.vercel.app/)
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### For Developers
+Follow these steps to set up the project locally:
 
-## How do I deploy this?
+### Prerequisites
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- Node.js 18+ and npm
+- PostgreSQL database
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/meditation-timer.git
+   cd meditation-timer
+
+2. Install dependencies:
+    ```npm install
+
+
+3. Create a .env file based on .env.example and add your credentials:
+
+# Database URL for your local PostgreSQL
+DATABASE_URL="postgresql://username:password@localhost:5432/meditation_timer"
+
+# Auth
+AUTH_SECRET="your-secret-here"
+AUTH_GOOGLE_ID="your-google-client-id"
+AUTH_GOOGLE_SECRET="your-google-client-secret"
+
+4. Push the database schema:
+    ```npm run db:push
+
+
+5. Start the development server:
+    ```npm run dev
+
+
+6. Open http://localhost:3000 in your browser.
+
+
+Database Schema
+
+The app uses a relational database with the following main tables:
+
+users: User accounts and authentication
+userPreferences: User-specific app settings
+meditationSessions: Records of completed meditation sessions
+scheduledMeditations: Planned future meditation sessions
+sounds: Available ambient and bell sounds
+backgroundImages: Available background images for the timer
+Deployment
+This app is configured for deployment on Vercel. Connect your GitHub repository to Vercel and set the required environment variables in the Vercel dashboard.
+
+
+License
+
+MIT
