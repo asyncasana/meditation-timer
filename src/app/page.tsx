@@ -1,68 +1,74 @@
 import Link from "next/link";
-
-import { LatestPost } from "@/app/_components/post";
 import { auth } from "@/server/auth";
 import { api, HydrateClient } from "@/trpc/server";
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const meditationHello = await api.meditation.hello({ text: "meditator" });
+  const hello = await api.meditation.hello({ text: "meditator" });
   const session = await auth();
-
-  if (session?.user) {
-    void api.post.getLatest.prefetch();
-  }
 
   return (
     <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-indigo-900 to-slate-900 text-white">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
+            <span className="text-amber-200">Zen</span>Timer
           </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
+          
+          <p className="text-xl text-center max-w-md">
+            A mindful meditation timer to help you establish and maintain a consistent practice
+          </p>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8 max-w-3xl">
+            <div className="flex flex-col gap-4 rounded-xl bg-white/10 p-6 hover:bg-white/20 transition">
+              <h3 className="text-2xl font-bold">Track Your Practice</h3>
               <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
+                Set goals and monitor your meditation journey with insightful statistics
               </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
+            </div>
+            <div className="flex flex-col gap-4 rounded-xl bg-white/10 p-6 hover:bg-white/20 transition">
+              <h3 className="text-2xl font-bold">Focus Your Mind</h3>
               <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
+                Customize sounds, durations, and backgrounds to enhance your meditation experience
               </div>
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              <Link
-                href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Sign out" : "Sign in"}
-              </Link>
             </div>
           </div>
+          
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex gap-4">
+              <Link
+                href="/timer"
+                className="rounded-full bg-amber-600 px-10 py-3 font-semibold text-white no-underline transition hover:bg-amber-500"
+              >
+                Begin Meditation
+              </Link>
+              {session ? (
+                <Link
+                  href="/stats"
+                  className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+                >
+                  View Stats
+                </Link>
+              ) : (
+                <Link
+                  href="/api/auth/signin"
+                  className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+            
+            {session && (
+              <p className="text-sm text-amber-200 mt-4">
+                Logged in as {session.user?.name}
+              </p>
+            )}
+          </div>
 
-          {session?.user && <LatestPost />}
+          <div className="text-center text-sm text-gray-300 mt-8">
+            <p>Set aside time for mindfulness every day.</p>
+            <p>Your mind will thank you.</p>
+          </div>
         </div>
       </main>
     </HydrateClient>
