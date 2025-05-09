@@ -3,7 +3,6 @@ import { auth } from "@/server/auth";
 import { api, HydrateClient } from "@/trpc/server";
 
 export default async function Home() {
-  const hello = await api.meditation.hello({ text: "meditator" });
   const session = await auth();
 
   return (
@@ -66,8 +65,8 @@ export default async function Home() {
           </div>
 
           <div className="text-center text-stone-500 mt-16">
-            <p className="italic font-light text-lg">"Set aside time for mindfulness every day."</p>
-            <p className="mt-1 text-sm">Your mind will thank you.</p>
+          <p className="italic font-light text-lg">&ldquo;Set aside time for mindfulness every day.&rdquo;</p>            
+          <p className="mt-1 text-sm">Your mind will thank you.</p>
           </div>
         </div>
       </main>

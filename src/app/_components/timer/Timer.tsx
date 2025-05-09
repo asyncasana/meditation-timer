@@ -124,7 +124,7 @@ export default function Timer() {
         
         {/* Quote - matching the style from homepage */}
         <div className="text-center text-stone-500 mt-8">
-          <p className="italic font-light">"Breathe in peace, breathe out tension."</p>
+        <p className="italic font-light">&ldquo;Breathe in peace, breathe out tension.&rdquo;</p>
         </div>
         
         {/* Back link */}
