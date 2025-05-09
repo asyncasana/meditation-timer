@@ -94,4 +94,5 @@ export const authConfig = {
     // error: '/auth/error',
     // newUser: '/auth/new-user'
   },
+  secret: env.AUTH_SECRET, // Use a strong secret for signing the session
 } satisfies NextAuthConfig;
