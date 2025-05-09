@@ -15,20 +15,18 @@ export const meditationRouter = createTRPCRouter({
       };
     }),
 
-// Add ESLint disable comments before each procedure:
-
   // Will be implemented later to record meditation sessions
   recordSession: protectedProcedure
-  .input(z.object({ 
-    durationMinutes: z.number().min(1),
-    completed: z.boolean().default(true),
-  }))
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  .mutation(async ({ ctx, input }) => {
-    // For now, just log and return success
-    console.log(`Recorded meditation: ${input.durationMinutes}min for ${ctx.session.user.id}`);
-    return { success: true };
-  }),
+    .input(z.object({ 
+      durationMinutes: z.number().min(1),
+      completed: z.boolean().default(true),
+    }))
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .mutation(async ({ ctx, input }) => {
+      // For now, just log and return success
+      console.log(`Recorded meditation: ${input.durationMinutes}min for ${ctx.session.user.id}`);
+      return { success: true };
+    }),
 
   // Get user's meditation stats
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,3 +39,4 @@ export const meditationRouter = createTRPCRouter({
       longestStreak: 7,
     };
   }),
+}); // <-- This closing bracket was likely missing
