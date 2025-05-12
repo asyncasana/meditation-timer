@@ -68,6 +68,7 @@ export default function Timer() {
         clearInterval(fadeInterval);
         audio.pause();
         audio.currentTime = 0;
+        audio.volume = startVolume; // Reset the volume to original
       }
     }, interval);
 
@@ -112,6 +113,8 @@ export default function Timer() {
 
             // Fade out ambient sound if playing
             if (ambientSoundRef.current && ambientPlaying) {
+              ambientSoundRef.current.pause(); // Immediately stop the sound
+              ambientSoundRef.current.currentTime = 0; // Reset position
               fadeInterval = fadeOut(ambientSoundRef.current, 1500);
               setAmbientPlaying(false);
             }
@@ -295,7 +298,7 @@ export default function Timer() {
                 ))}
               </div>
 
-              {/* Custom duration input */}
+              {/* Custom duration input - Mobile friendly version */}
               <div className="mt-4 flex items-center justify-center">
                 <label
                   htmlFor="custom-duration"
@@ -303,20 +306,54 @@ export default function Timer() {
                 >
                   Custom:
                 </label>
-                <input
-                  id="custom-duration"
-                  type="number"
-                  min="1"
-                  max="180"
-                  className="w-16 rounded-md border border-stone-200 px-2 py-1 text-center text-stone-800 focus:border-stone-400 focus:outline-none"
-                  value={duration}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (!isNaN(value) && value > 0) {
-                      handleDurationChange(value);
-                    }
-                  }}
-                />
+                <div className="flex items-center">
+                  <button
+                    className="rounded-l-md border border-stone-200 bg-stone-100 px-3 py-1 text-stone-800 hover:bg-stone-200"
+                    onClick={() => {
+                      // Decrease duration by 1, minimum 1
+                      handleDurationChange(Math.max(1, duration - 1));
+                    }}
+                  >
+                    -
+                  </button>
+                  <input
+                    id="custom-duration"
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    max="180"
+                    className="w-16 border-y border-stone-200 px-2 py-1 text-center text-stone-800 focus:border-stone-400 focus:outline-none"
+                    value={duration}
+                    onChange={(e) => {
+                      // Allow empty string which makes it easier to clear and type new value
+                      if (e.target.value === "") {
+                        // Just set the input value temporarily, but don't update timer
+                        e.target.value = "";
+                      } else {
+                        const value = parseInt(e.target.value);
+                        if (!isNaN(value) && value > 0) {
+                          handleDurationChange(value);
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // When input loses focus, ensure there's a valid value
+                      const value = parseInt(e.target.value);
+                      if (isNaN(value) || value < 1) {
+                        handleDurationChange(1);
+                      }
+                    }}
+                  />
+                  <button
+                    className="rounded-r-md border border-stone-200 bg-stone-100 px-3 py-1 text-stone-800 hover:bg-stone-200"
+                    onClick={() => {
+                      // Increase duration by 1, maximum 180
+                      handleDurationChange(Math.min(180, duration + 1));
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
                 <span className="ml-2 text-sm text-stone-600">min</span>
               </div>
             </div>
