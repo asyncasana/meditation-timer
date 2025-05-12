@@ -21,7 +21,6 @@ export const meditationRouter = createTRPCRouter({
       durationMinutes: z.number().min(1),
       completed: z.boolean().default(true),
     }))
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .mutation(async ({ ctx, input }) => {
       // For now, just log and return success
       console.log(`Recorded meditation: ${input.durationMinutes}min for ${ctx.session.user.id}`);

@@ -52,7 +52,7 @@ export default function Timer() {
     }
   };
 
-  const fadeOut = (audio: HTMLAudioElement, duration: number = 2000) => {
+  const fadeOut = (audio: HTMLAudioElement, duration = 2000) => {
     const startVolume = audio.volume;
     const interval = 50; // 50ms intervals
     const steps = duration / interval;
