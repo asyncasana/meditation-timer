@@ -11,6 +11,7 @@ export default function Timer() {
   const [hasCompleted, setHasCompleted] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [ambientPlaying, setAmbientPlaying] = useState(false);
+  const [inputValue, setInputValue] = useState<string>(duration.toString());
 
   // Sound references
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -18,19 +19,34 @@ export default function Timer() {
 
   // Initialize sounds
   useEffect(() => {
-    endSoundRef.current = new Audio("/sounds/sound-bowl.mp3");
-    ambientSoundRef.current = new Audio("/sounds/waves-loop.mp3");
+    console.log("Initializing sounds");
 
-    // Set volumes (0 to 1)
-    if (endSoundRef.current) {
-      endSoundRef.current.volume = 0.7; // 70% volume for end sound
-      endSoundRef.current.preload = "auto"; // Preload this sound
-    }
+    try {
+      endSoundRef.current = new Audio("/sounds/sound-bowl.mp3");
+      console.log("End sound created");
 
-    if (ambientSoundRef.current) {
-      ambientSoundRef.current.volume = 0.3; // 30% volume for ambient (quieter)
-      ambientSoundRef.current.loop = true;
-      ambientSoundRef.current.preload = "auto"; // Preload this sound
+      // Check if the ambient sound file exists by adding an event listener
+      ambientSoundRef.current = new Audio("/sounds/waves-loop.mp3");
+      ambientSoundRef.current.addEventListener("error", (e) => {
+        console.error("Error loading ambient sound:", e);
+      });
+      console.log("Ambient sound created");
+
+      // Set volumes (0 to 1)
+      if (endSoundRef.current) {
+        endSoundRef.current.volume = 0.7;
+        endSoundRef.current.preload = "auto";
+        console.log("End sound volume:", endSoundRef.current.volume);
+      }
+
+      if (ambientSoundRef.current) {
+        ambientSoundRef.current.volume = 0.5; // Increase from 0.3 to 0.5 for better audibility
+        ambientSoundRef.current.loop = true;
+        ambientSoundRef.current.preload = "auto";
+        console.log("Ambient sound volume:", ambientSoundRef.current.volume);
+      }
+    } catch (error) {
+      console.error("Error initializing sounds:", error);
     }
 
     // Cleanup on unmount
@@ -53,26 +69,82 @@ export default function Timer() {
   };
 
   const fadeOut = (audio: HTMLAudioElement, duration = 2000) => {
+    if (!audio) return null;
+
+    // Clone the current volume before changes
     const startVolume = audio.volume;
-    const interval = 50; // 50ms intervals
-    const steps = duration / interval;
-    const volumeStep = startVolume / steps;
 
-    let currentStep = 0;
-    const fadeInterval = setInterval(() => {
-      currentStep++;
-      const newVolume = Math.max(0, startVolume - currentStep * volumeStep);
-      audio.volume = newVolume;
+    // Only try fading if audio is actually playing
+    if (!audio.paused && audio.volume > 0) {
+      console.log("Starting fade out, current volume:", startVolume);
 
-      if (currentStep >= steps) {
-        clearInterval(fadeInterval);
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = startVolume; // Reset the volume to original
+      const interval = 50;
+      const steps = duration / interval;
+      const volumeStep = startVolume / steps;
+
+      let currentStep = 0;
+      const fadeInterval = setInterval(() => {
+        currentStep++;
+        const newVolume = Math.max(0, startVolume - currentStep * volumeStep);
+
+        // Check if audio is still valid
+        if (audio) {
+          audio.volume = newVolume;
+          console.log(`Fade step ${currentStep}: volume = ${newVolume}`);
+        }
+
+        if (currentStep >= steps || newVolume <= 0) {
+          clearInterval(fadeInterval);
+
+          if (audio) {
+            console.log("Fade complete, pausing audio");
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = startVolume; // Reset volume for next time
+          }
+        }
+      }, interval);
+
+      return fadeInterval;
+    } else {
+      // Already paused or volume is 0
+      console.log("Audio already paused or volume is 0, no fade needed");
+      audio.pause();
+      audio.currentTime = 0;
+      return null;
+    }
+  };
+
+  const initializeAndPlaySound = () => {
+    if (!soundEnabled) return;
+
+    // Wait a tick for any pending cleanup to finish
+    setTimeout(() => {
+      // Create a fresh audio instance
+      ambientSoundRef.current = new Audio("/sounds/waves-loop.mp3");
+
+      if (ambientSoundRef.current) {
+        ambientSoundRef.current.volume = 0.5;
+        ambientSoundRef.current.loop = true;
+
+        console.log("Playing fresh ambient sound");
+        // Add a small delay before playing to avoid race conditions
+        ambientSoundRef.current
+          .play()
+          .then(() => {
+            console.log("Ambient sound playing");
+            setAmbientPlaying(true);
+          })
+          .catch((e) => {
+            console.error("Play failed", e);
+
+            // If autoplay fails, we can try again with user interaction
+            if (e.name === "NotAllowedError") {
+              console.log("Autoplay not allowed - will need user interaction");
+            }
+          });
       }
-    }, interval);
-
-    return fadeInterval;
+    }, 50); // Small delay to avoid race conditions
   };
 
   // Format time as MM:SS
@@ -84,18 +156,12 @@ export default function Timer() {
 
   // Timer logic
   useEffect(() => {
+    setInputValue(duration.toString());
+
     let interval: NodeJS.Timeout | null = null;
     let fadeInterval: NodeJS.Timeout | null = null;
 
     if (isRunning && remainingSeconds > 0) {
-      // Play ambient sound when timer starts
-      if (soundEnabled && !ambientPlaying && ambientSoundRef.current) {
-        ambientSoundRef.current
-          .play()
-          .catch((error) => console.log("Audio play failed:", error));
-        setAmbientPlaying(true);
-      }
-
       interval = setInterval(() => {
         setRemainingSeconds((prev) => {
           if (prev <= 1) {
@@ -113,8 +179,9 @@ export default function Timer() {
 
             // Fade out ambient sound if playing
             if (ambientSoundRef.current && ambientPlaying) {
-              ambientSoundRef.current.pause(); // Immediately stop the sound
-              ambientSoundRef.current.currentTime = 0; // Reset position
+              console.log("Timer completed, fading ambient sound");
+
+              // Don't pause - just let the fadeOut function handle it
               fadeInterval = fadeOut(ambientSoundRef.current, 1500);
               setAmbientPlaying(false);
             }
@@ -126,9 +193,12 @@ export default function Timer() {
         });
       }, 1000);
     } else if (!isRunning) {
-      // Fade out ambient sound when timer is paused
+      // Fade out ambient sound if playing
       if (ambientSoundRef.current && ambientPlaying) {
-        fadeInterval = fadeOut(ambientSoundRef.current, 1500); // 1.5 second fade
+        console.log("Timer paused, fading ambient sound");
+
+        // Don't pause immediately, let the fade handle it
+        fadeInterval = fadeOut(ambientSoundRef.current, 1500);
         setAmbientPlaying(false);
       }
 
@@ -138,8 +208,14 @@ export default function Timer() {
     return () => {
       if (interval) clearInterval(interval);
       if (fadeInterval) clearInterval(fadeInterval);
+
+      // Only stop sound if timer is not running (prevents race condition)
+      if (ambientSoundRef.current && !isRunning) {
+        ambientSoundRef.current.pause();
+        ambientSoundRef.current.volume = 0.5; // Reset volume back to normal
+      }
     };
-  }, [isRunning, remainingSeconds, soundEnabled, ambientPlaying]);
+  }, [isRunning, remainingSeconds, soundEnabled, ambientPlaying, duration]);
 
   // Change duration
   const handleDurationChange = (minutes: number) => {
@@ -157,6 +233,7 @@ export default function Timer() {
 
     // Fade out ambient sound if playing
     if (ambientSoundRef.current && ambientPlaying) {
+      // Just fade out, don't pause first
       fadeOut(ambientSoundRef.current, 1000);
       setAmbientPlaying(false);
     }
@@ -246,14 +323,23 @@ export default function Timer() {
             <div className="mb-12 flex justify-center gap-4">
               <button
                 onClick={() => {
+                  // If timer completed (at 0:00), reset to default duration first
+                  if (remainingSeconds <= 0) {
+                    setRemainingSeconds(duration * 60);
+                  }
+
+                  if (!isRunning) {
+                    // If starting the timer, initialize and play sound
+                    initializeAndPlaySound();
+                  }
+
                   if (hasCompleted) {
-                    // If we're restarting after completion, make sure audio is ready
                     prepareAudio();
                     setHasCompleted(false);
                   }
+
                   setIsRunning(!isRunning);
                 }}
-                disabled={false} // Remove the disabled={hasCompleted} to allow restarting
                 className="rounded-full bg-stone-600 px-10 py-3 font-normal text-white no-underline shadow-sm transition hover:bg-stone-500 disabled:opacity-50"
               >
                 {isRunning ? "Pause" : "Start"}
@@ -299,61 +385,44 @@ export default function Timer() {
               </div>
 
               {/* Custom duration input - Mobile friendly version */}
-              <div className="mt-4 flex items-center justify-center">
+              <div className="mt-4 flex items-center justify-center gap-2">
                 <label
                   htmlFor="custom-duration"
-                  className="mr-3 text-sm text-stone-600"
+                  className="text-sm text-stone-600"
                 >
                   Custom:
                 </label>
-                <div className="flex items-center">
-                  <button
-                    className="rounded-l-md border border-stone-200 bg-stone-100 px-3 py-1 text-stone-800 hover:bg-stone-200"
-                    onClick={() => {
-                      // Decrease duration by 1, minimum 1
-                      handleDurationChange(Math.max(1, duration - 1));
-                    }}
-                  >
-                    -
-                  </button>
-                  <input
-                    id="custom-duration"
-                    type="number"
-                    inputMode="numeric"
-                    min="1"
-                    max="180"
-                    className="w-16 border-y border-stone-200 px-2 py-1 text-center text-stone-800 focus:border-stone-400 focus:outline-none"
-                    value={duration}
-                    onChange={(e) => {
-                      // Allow empty string which makes it easier to clear and type new value
-                      if (e.target.value === "") {
-                        // Just set the input value temporarily, but don't update timer
-                        e.target.value = "";
-                      } else {
-                        const value = parseInt(e.target.value);
-                        if (!isNaN(value) && value > 0) {
-                          handleDurationChange(value);
-                        }
+                <input
+                  id="custom-duration"
+                  type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min="1"
+                  max="180"
+                  className="w-16 rounded border border-stone-200 px-2 py-1 text-center text-stone-800 focus:border-stone-400 focus:outline-none"
+                  value={inputValue}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setInputValue(val);
+
+                    if (val !== "") {
+                      const value = parseInt(val);
+                      if (!isNaN(value) && value > 0) {
+                        handleDurationChange(value);
                       }
-                    }}
-                    onBlur={(e) => {
-                      // When input loses focus, ensure there's a valid value
-                      const value = parseInt(e.target.value);
-                      if (isNaN(value) || value < 1) {
-                        handleDurationChange(1);
-                      }
-                    }}
-                  />
-                  <button
-                    className="rounded-r-md border border-stone-200 bg-stone-100 px-3 py-1 text-stone-800 hover:bg-stone-200"
-                    onClick={() => {
-                      // Increase duration by 1, maximum 180
-                      handleDurationChange(Math.min(180, duration + 1));
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (isNaN(value) || value < 1) {
+                      handleDurationChange(1);
+                      setInputValue("1");
+                    } else if (value > 180) {
+                      handleDurationChange(180);
+                      setInputValue("180");
+                    }
+                  }}
+                />
                 <span className="ml-2 text-sm text-stone-600">min</span>
               </div>
             </div>
