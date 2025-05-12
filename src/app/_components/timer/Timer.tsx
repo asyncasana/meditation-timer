@@ -139,7 +139,7 @@ export default function Timer() {
             console.error("Play failed", e);
 
             // If autoplay fails, we can try again with user interaction
-            if (e.name === "NotAllowedError") {
+            if ((e as Error).name === "NotAllowedError") {
               console.log("Autoplay not allowed - will need user interaction");
             }
           });
