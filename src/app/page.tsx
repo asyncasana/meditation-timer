@@ -250,8 +250,179 @@ export default function Home() {
 
   // 12. UI component
   return (
-    <>
-      {focusMode && (
+    <div className="relative min-h-screen w-full overflow-hidden font-sans">
+      {/* Background image and dark overlay */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 z-50 bg-cover bg-center opacity-40"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=3026&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+          }}
+        />
+        <div className="absolute inset-0 bg-black/80" />
+      </div>
+
+      {/* Page content */}
+      <main
+        className={`relative z-10 flex min-h-screen flex-col items-center justify-center text-stone-100 transition-all duration-500 ease-in-out ${focusMode ? "pointer-events-none translate-y-20 opacity-0" : "translate-y-0 opacity-60"} `}
+      >
+        <div className="container flex max-w-3xl flex-col items-center justify-center gap-12 px-4 py-16">
+          <h1 className="text-center text-4xl font-light tracking-wide">
+            <span className="text-stone-100">Mindful</span>
+            <span className="text-stone-300">Minutes</span>
+          </h1>
+          <div className="w-full max-w-md rounded-2xl  bg-white/50 p-8 shadow-smbackdrop-blur-md shadow-xl">
+            <div className="text-center space-y-6">
+              {/* Control buttons */}
+              <div className="mb-12 flex items-center justify-center gap-4">
+                {/* Start/Pause button */}
+                <button
+                  onClick={() => {
+                    if (secondsRef.current <= 0) {
+                      secondsRef.current = duration * 60;
+                      setRemainingSeconds(duration * 60);
+                    }
+                    const newRunningState = !isRunning;
+                    setIsRunning(newRunningState);
+                    if (newRunningState && soundEnabled) {
+                      playAmbientSound();
+                    }
+                    if (newRunningState && !focusMode) {
+                      setFocusMode(true);
+                    }
+                    if (hasCompleted) {
+                      if (endSoundRef.current) {
+                        endSoundRef.current.pause();
+                        endSoundRef.current.currentTime = 0;
+                      }
+                      setHasCompleted(false);
+                    }
+                  }}
+                  className="rounded-full bg-stone-600 px-8 py-3 text-lg font-medium text-white shadow-sm transition hover:bg-stone-500 disabled:opacity-50"
+                >
+                  {isRunning ? "Pause" : "Start"}
+                </button>
+
+                {/* Sound toggle button */}
+                <button
+                  onClick={toggleSound}
+                  aria-label={soundEnabled ? "Mute sound" : "Unmute sound"}
+                  className={`flex items-center justify-center rounded-full bg-stone-600 p-3 text-white shadow-sm transition hover:bg-stone-500 disabled:opacity-50`}
+                  title={soundEnabled ? "Mute sound" : "Unmute sound"}
+                  type="button"
+                >
+                  {soundEnabled ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                      <line x1="23" y1="9" x2="17" y2="15"></line>
+                      <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                  )}
+                </button>
+              </div>
+
+              {/* Duration selection */}
+              <div className="mb-6">
+                <h3 className="mb-3 font-normal text-stone-700">
+                  Select duration in minutes
+                </h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {[5, 10, 15, 30].map((min) => (
+                    <button
+                      key={min}
+                      onClick={() => handleDurationChange(min)}
+                      className={`rounded-full px-4 py-2 transition ${
+                        duration === min
+                          ? "bg-stone-500 text-white"
+                          : "border border-stone-200 bg-stone-100 text-stone-800 hover:bg-stone-200"
+                      }`}
+                    >
+                      {min}
+                    </button>
+                  ))}
+                </div>
+                {/* Custom duration input */}
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <span className="ml-2 text-md text-stone-700">
+                    Or enter a custom duration:
+                  </span>
+            
+                  <input
+                    id="custom-duration"
+                    type="number"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    min="1"
+                    max="180"
+                    className="w-16 rounded border text-center"
+                    value={inputValue}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setInputValue(val);
+                      if (val !== "") {
+                        const value = parseInt(val);
+                        if (!isNaN(value) && value > 0) {
+                          handleDurationChange(value);
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (isNaN(value) || value < 1) {
+                        handleDurationChange(1);
+                        setInputValue("1");
+                      } else if (value > 180) {
+                        handleDurationChange(180);
+                        setInputValue("180");
+                      }
+                    }}
+                  />
+                  <span className="ml-2 text-md text-stone-700">
+                    mins
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Quote */}
+          <div className="mt-8 text-center text-stone-200">
+            <p className="font-light italic">
+              &ldquo;Breathe in peace, breathe out tension.&rdquo;
+            </p>
+          </div>
+        </div>
+      </main>
+
+      {/* Focus overlay content */}
+      <div
+        className={`fixed inset-0 z-20 flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${focusMode ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-full opacity-0"} `}
+      >
         <FocusTimerOverlay
           remainingSeconds={remainingSeconds}
           isRunning={isRunning}
@@ -264,181 +435,7 @@ export default function Home() {
           soundEnabled={soundEnabled}
           onToggleSound={toggleSound}
         />
-      )}
-      {!focusMode && (
-        <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-stone-100 to-amber-50 text-stone-800">
-          <div className="container flex max-w-3xl flex-col items-center justify-center gap-12 px-4 py-16">
-            <h1 className="text-center text-4xl font-light tracking-wide">
-              <span className="text-stone-500">Mindful</span>Minutes
-            </h1>
-
-            <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
-              <div className="text-center">
-                {/* Sound toggle */}
-                <div className="mb-4 flex justify-end">
-                  <button
-                    onClick={toggleSound}
-                    className="text-stone-500 transition hover:text-stone-500"
-                  >
-                    {soundEnabled ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-                        <line x1="23" y1="9" x2="17" y2="15"></line>
-                        <line x1="17" y1="9" x2="23" y2="15"></line>
-                      </svg>
-                    )}
-                  </button>
-                </div>
-
-                {/* Control buttons */}
-                <div className="mb-12 flex justify-center gap-4">
-                  <button
-                    onClick={() => {
-                      if (secondsRef.current <= 0) {
-                        secondsRef.current = duration * 60;
-                        setRemainingSeconds(duration * 60);
-                      }
-
-                      const newRunningState = !isRunning;
-                      setIsRunning(newRunningState);
-
-                      // Always play ambient sound when resuming
-                      if (newRunningState && soundEnabled) {
-                        playAmbientSound();
-                      }
-
-                      // Show overlay when starting (only if not already in focus mode)
-                      if (newRunningState && !focusMode) {
-                        setFocusMode(true);
-                      }
-
-                      if (hasCompleted) {
-                        if (endSoundRef.current) {
-                          endSoundRef.current.pause();
-                          endSoundRef.current.currentTime = 0;
-                        }
-                        setHasCompleted(false);
-                      }
-                    }}
-                    className="rounded-full bg-stone-600 px-10 py-3 font-normal text-white no-underline shadow-sm transition hover:bg-stone-500 disabled:opacity-50"
-                  >
-                    {isRunning ? "Pause" : "Start"}
-                  </button>
-
-                  <button
-                    onClick={resetTimer}
-                    className="rounded-full border border-stone-200 bg-stone-100 px-10 py-3 font-normal text-stone-800 no-underline transition hover:bg-stone-200"
-                  >
-                    Reset
-                  </button>
-                </div>
-
-                {/* Completion message */}
-                {hasCompleted && (
-                  <div className="mb-12 rounded-lg border border-amber-100 bg-amber-50 px-6 py-4 text-stone-700">
-                    <p className="text-xl font-normal">Session Complete</p>
-                    <p className="mt-1 text-sm">
-                      Great job maintaining your practice!
-                    </p>
-                  </div>
-                )}
-
-                {/* Duration selection */}
-                <div className="mb-6">
-                  <h3 className="mb-3 font-normal text-stone-600">
-                    Select duration in minutes
-                  </h3>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {[5, 10, 15, 30].map((min) => (
-                      <button
-                        key={min}
-                        onClick={() => handleDurationChange(min)}
-                        className={`rounded-full px-4 py-2 transition ${
-                          duration === min
-                            ? "bg-stone-500 text-white"
-                            : "border border-stone-200 bg-stone-100 text-stone-800 hover:bg-stone-200"
-                        }`}
-                      >
-                        {min}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Custom duration input */}
-                  <div className="mt-4 flex items-center justify-center gap-2">
-                    <input
-                      id="custom-duration"
-                      type="number"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      min="1"
-                      max="180"
-                      className="w-16 rounded border border-stone-200 px-2 py-1 text-center text-stone-800 focus:border-stone-400 focus:outline-none"
-                      value={inputValue}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setInputValue(val);
-
-                        if (val !== "") {
-                          const value = parseInt(val);
-                          if (!isNaN(value) && value > 0) {
-                            handleDurationChange(value);
-                          }
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const value = parseInt(e.target.value);
-                        if (isNaN(value) || value < 1) {
-                          handleDurationChange(1);
-                          setInputValue("1");
-                        } else if (value > 180) {
-                          handleDurationChange(180);
-                          setInputValue("180");
-                        }
-                      }}
-                    />
-                    <span className="ml-2 text-sm text-stone-600">
-                      minute meditation
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quote */}
-            <div className="mt-8 text-center text-stone-500">
-              <p className="font-light italic">
-                &ldquo;Breathe in peace, breathe out tension.&rdquo;
-              </p>
-            </div>
-          </div>
-        </main>
-      )}
-    </>
+      </div>
+    </div>
   );
 }

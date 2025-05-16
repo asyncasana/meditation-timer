@@ -31,25 +31,8 @@ export default function FocusTimerOverlay({
     return () => setShow(false);
   }, []);
 
-  return (
-    <div
-  className={`
-    fixed inset-0 z-50 flex items-center justify-center bg-black/80
-    transition-all duration-500 ease-out
-    ${show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
-  `}
->
-
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-40"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=3026&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-        }}
-      />
-
+return (
+    <div className="fixed inset-0 flex items-center justify-center">
       {/* X button */}
       <button
         className="absolute top-6 right-8 text-3xl text-white opacity-50 transition hover:opacity-100"
@@ -59,8 +42,14 @@ export default function FocusTimerOverlay({
         ×
       </button>
 
-      {/* Timer circle and controls */}
-      <div className="relative z-10 flex flex-col items-center">
+      {/* Animated content */}
+            <div
+        className={`
+          relative z-10 flex flex-col items-center
+          transition-all duration-500 ease-out
+          opacity-100 translate-y-0
+        `}
+      >
         <div className="relative flex h-[220px] w-[220px] items-center justify-center">
           <svg width={220} height={220}>
             <circle
@@ -83,7 +72,7 @@ export default function FocusTimerOverlay({
               strokeDashoffset={2 * Math.PI * 100 * progress}
               strokeLinecap="round"
               style={{ transition: "stroke-dashoffset 1s linear" }}
-              transform="rotate(-90 110 110)" // <-- add this line
+              transform="rotate(-90 110 110)"
             />
           </svg>
           {/* Time remaining */}
@@ -103,6 +92,7 @@ export default function FocusTimerOverlay({
           {isRunning ? "Pause" : "Start"}
         </button>
       </div>
+      {/* Sound toggle button and photo credit remain unchanged */}
       <button
         className="absolute top-6 left-8 text-2xl text-white opacity-60 transition hover:opacity-100"
         onClick={onToggleSound}
@@ -142,7 +132,7 @@ export default function FocusTimerOverlay({
           </svg>
         )}
       </button>
-      {/* Photo credit */}
+      
       <div className="absolute right-0 bottom-2 left-0 z-50 text-center text-xs text-white/70">
         Photo by{" "}
         <a
@@ -163,7 +153,6 @@ export default function FocusTimerOverlay({
           Unsplash
         </a>
       </div>
-    </div>
     </div>
   );
 }
