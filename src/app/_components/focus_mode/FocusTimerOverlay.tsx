@@ -31,7 +31,7 @@ export default function FocusTimerOverlay({
     return () => setShow(false);
   }, []);
 
-return (
+  return (
     <div className="fixed inset-0 flex items-center justify-center">
       {/* X button */}
       <button
@@ -44,12 +44,8 @@ return (
       </button>
 
       {/* Animated content */}
-            <div
-        className={`
-          relative z-10 flex flex-col items-center
-          transition-all duration-500 ease-out
-          opacity-70 translate-y-0
-        `}
+      <div
+        className={`relative z-10 flex translate-y-0 flex-col items-center opacity-70 transition-all duration-500 ease-out`}
       >
         <div className="relative flex h-[220px] w-[220px] items-center justify-center">
           <svg width={220} height={220}>
@@ -136,7 +132,7 @@ return (
           </svg>
         )}
       </button>
-      
+
       <div className="absolute right-0 bottom-2 left-0 z-50 text-center text-xs text-white/70">
         Photo by{" "}
         <a
