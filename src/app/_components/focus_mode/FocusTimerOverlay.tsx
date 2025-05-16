@@ -133,7 +133,7 @@ export default function FocusTimerOverlay({
         )}
       </button>
 
-      <div className="absolute right-0 bottom-2 left-0 z-50 text-center text-xs text-white/70">
+      <div className="mb-5 absolute right-0 bottom-2 left-0 z-50 text-center text-xs text-white/70">
         Photo by{" "}
         <a
           href="https://unsplash.com/@sotti?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"

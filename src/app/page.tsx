@@ -169,6 +169,7 @@ export default function Home() {
         if (secondsRef.current <= 1) {
           setIsRunning(false);
           setHasCompleted(true);
+          setFocusMode(false); // Hide overlay when timer completes
 
           // Always play ending sound (notification is important regardless of sound state)
           if (endSoundRef.current) {
