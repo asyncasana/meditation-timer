@@ -14,6 +14,8 @@ export default function Home() {
   const [inputValue, setInputValue] = useState<string>(duration.toString()); // Handles the custom duration input field
   const [focusMode, setFocusMode] = useState(false); // Boolean to track if focus mode is active
   const [bgLoaded, setBgLoaded] = useState(false); // Boolean to track if background image is loaded
+  const [minLoaderDone, setMinLoaderDone] = useState(false); // Boolean to track if the minimum loader time has passed
+  const [showLoader, setShowLoader] = useState(true); // Boolean to track if the loader should be shown
 
   // 2. Sound references
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -30,7 +32,25 @@ export default function Home() {
     img.onload = () => setBgLoaded(true);
   }, []);
 
-  // 3. Initialize end sound
+  // 4. Minimum loader time effect
+  // This effect runs once when the component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoaderDone(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 5. Show loader effect
+  useEffect(() => {
+    if (bgLoaded && minLoaderDone) {
+      // Wait for the fade-out transition before removing from DOM
+      const timeout = setTimeout(() => setShowLoader(false), 700); // match duration-700
+      return () => clearTimeout(timeout);
+    } else {
+      setShowLoader(true);
+    }
+  }, [bgLoaded, minLoaderDone]);
+
+  // 6. Initialize end sound
   // This effect runs once when the component mounts
   useEffect(() => {
     try {
@@ -53,7 +73,7 @@ export default function Home() {
     };
   }, []);
 
-  // 4. Initialize ambient sound
+  // 7. Initialize ambient sound
   // This effect runs once when the component mounts
   useEffect(() => {
     try {
@@ -81,7 +101,7 @@ export default function Home() {
     };
   }, []);
 
-  // 5. Play ambient sound
+  // 8. Play ambient sound
   // This function is called when the timer starts
   const playAmbientSound = () => {
     if (!soundEnabled || !ambientSoundRef.current) return;
@@ -107,7 +127,7 @@ export default function Home() {
       });
   };
 
-  // 6. Stop ambient sound
+  // 9. Stop ambient sound
   // This function is called when the timer is stopped or completed
   const stopAmbientSound = () => {
     if (keepAliveIntervalRef.current) {
@@ -127,7 +147,7 @@ export default function Home() {
     }
   };
 
-  // 7. Timer logic
+  // 10. Timer logic
   // This effect runs when the timer is running or when the duration changes
   useEffect(() => {
     // Only update input value when duration changes
@@ -187,7 +207,7 @@ export default function Home() {
     };
   }, [isRunning, duration, soundEnabled]);
 
-  // 8. Change duration of the timer
+  // 11. Change duration of the timer
   // This function is called when the user selects a new duration
   const handleDurationChange = (minutes: number) => {
     setDuration(minutes);
@@ -202,7 +222,7 @@ export default function Home() {
     }
   };
 
-  // 9. Reset timer
+  // 12. Reset timer
   // This function is called when the user clicks the reset button
   const resetTimer = () => {
     setIsRunning(false);
@@ -222,7 +242,7 @@ export default function Home() {
     }
   };
 
-  // 10. Toggle sound
+  // 13. Toggle sound
   // This function is called when the user clicks the sound toggle button
   const toggleSound = () => {
     const newSoundState = !soundEnabled;
@@ -240,7 +260,7 @@ export default function Home() {
     }
   };
 
-  // 11. Handle pause/resume
+  // 14. Handle pause/resume
   // This function is called when the user clicks the pause button
   const handlePauseToggle = () => {
     setIsRunning((prev) => {
@@ -257,7 +277,7 @@ export default function Home() {
     });
   };
 
-  // 12. UI component
+  // 15. UI component
   return (
     <div className="relative min-h-screen w-full overflow-hidden font-sans">
       {/* Background image and dark overlay */}
@@ -276,8 +296,14 @@ export default function Home() {
         className={`relative z-10 flex min-h-screen flex-col items-center justify-center text-stone-100 transition-all duration-500 ease-in-out ${focusMode ? "pointer-events-none translate-y-20 opacity-0" : "translate-y-0 opacity-80"} `}
       >
         {/* Loader overlay while background image loads */}
-        {!bgLoaded && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+        {showLoader && (
+          <div
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700 ${
+              bgLoaded && minLoaderDone
+                ? "pointer-events-none opacity-0"
+                : "opacity-100"
+            }`}
+          >
             <img
               src="/apple-touch-icon.png"
               alt="MindfulMinutes Logo"
