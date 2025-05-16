@@ -87,7 +87,9 @@ export default function Home() {
           }
           setEndSoundUnlocked(true);
         })
-        .catch(() => {});
+        .catch((err) => {
+          // Optionally log or ignore
+        });
     }
   };
 
