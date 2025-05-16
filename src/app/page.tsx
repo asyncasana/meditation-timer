@@ -257,7 +257,7 @@ export default function Home() {
           className="absolute inset-0 z-50 bg-cover bg-center opacity-40"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=3026&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+              "url('images/waves.jpg')",
           }}
         />
         <div className="absolute inset-0 bg-black/80" />
