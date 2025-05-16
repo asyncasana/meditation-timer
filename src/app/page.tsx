@@ -272,8 +272,76 @@ export default function Home() {
             <span className="text-black/90">Mindful</span>
             <span className="text-white/90">Minutes</span>
           </h1>
-          <div className="w-full max-w-md rounded-2xl  bg-white/70 p-8 shadow-smbackdrop-blur-md shadow-xl">
-            <div className="text-center space-y-6">
+          <div className="shadow-smbackdrop-blur-md w-full max-w-md rounded-2xl bg-white/70 p-8 shadow-xl">
+            <div className="space-y-6 text-center">
+
+              {/* Duration selection */}
+              <div className="mb-10 mt-5">
+                <h2 className="mb-6 text-lg font-normal text-black/90">
+                  Select duration in minutes
+                </h2>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {[5, 15, 30].map((min) => (
+                    <button
+                      aria-label={`Set duration to ${min} minutes`}
+                      title={`Set duration to ${min} minutes`}
+                      type="button"
+                      key={min}
+                      onClick={() => handleDurationChange(min)}
+                      className={`w-17 h-11 rounded-full px-5 py-2 transition ${
+                        duration === min
+                          ? "bg-stone-700 text-white"
+                          : "border border-stone-200 bg-white text-stone-800 hover:bg-stone-200"
+                      }`}
+                    >
+                      {min}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom duration input */}
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <span className="text-md text-black/90">Custom:</span>
+                  <label htmlFor="custom-duration" className="sr-only">
+                    Custom duration in minutes
+                  </label>
+                  <input
+                    aria-label="Custom duration in minutes"
+                    title="Custom duration in minutes"
+                    id="custom-duration"
+                    type="number"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    min="1"
+                    max="180"
+                    className="h-8 w-12 rounded border bg-white/70 text-center text-black/90 shadow-sm focus:border-stone-500 focus:ring focus:ring-stone-200 [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
+                    style={{ MozAppearance: "textfield" }}
+                    value={inputValue}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setInputValue(val);
+                      if (val !== "") {
+                        const value = parseInt(val);
+                        if (!isNaN(value) && value > 0) {
+                          handleDurationChange(value);
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (isNaN(value) || value < 1) {
+                        handleDurationChange(1);
+                        setInputValue("1");
+                      } else if (value > 180) {
+                        handleDurationChange(180);
+                        setInputValue("180");
+                      }
+                    }}
+                  />
+                  <span className="text-md text-black/90">mins</span>
+                </div>
+              </div>
+
               {/* Control buttons */}
               <div className="mb-6 flex items-center justify-center gap-4">
                 {/* Start/Pause button */}
@@ -299,7 +367,10 @@ export default function Home() {
                       setHasCompleted(false);
                     }
                   }}
-  className="rounded-full bg-stone-800 px-8 py-3 font-medium text-white shadow-sm transition hover:bg-stone-600 disabled:opacity-50 flex items-center justify-center w-23"
+                  className="flex w-25 items-center justify-center rounded-full bg-stone-800 px-8 py-3 font-medium text-white shadow-sm transition hover:bg-stone-600 disabled:opacity-50"
+                  aria-label="Start timer"
+                  title="Start timer"
+                  type="button"
                 >
                   Start
                 </button>
@@ -308,7 +379,7 @@ export default function Home() {
                 <button
                   onClick={toggleSound}
                   aria-label={soundEnabled ? "Mute sound" : "Unmute sound"}
-  className="rounded-full bg-stone-800 px-8 py-3 text-lg font-medium text-white shadow-sm transition hover:bg-stone-600 disabled:opacity-50 flex items-center justify-center w-23"
+                  className="flex w-25 items-center justify-center rounded-full bg-stone-800 px-8 py-3 text-lg font-medium text-white shadow-sm transition hover:bg-stone-600 disabled:opacity-50"
                   title={soundEnabled ? "Mute sound" : "Unmute sound"}
                   type="button"
                 >
@@ -347,68 +418,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Duration selection */}
-              <div className="mb-6">
-                <h3 className="mb-4 font-normal text-black/90">
-                  Select duration in minutes
-                </h3>
-                <div className="flex flex-wrap justify-center gap-2 ">
-                  {[5, 15, 30].map((min) => (
-                    <button
-                      key={min}
-                      onClick={() => handleDurationChange(min)}
-                      className={`w-15 rounded-full px-5 py-2 transition ${
-                        duration === min
-                          ? "bg-stone-700 text-white"
-                          : "border border-stone-200 bg-white text-stone-800 hover:bg-stone-200"
-                      }`}
-                    >
-                      {min}
-                    </button>
-                  ))}
-                </div>
-                {/* Custom duration input */}
-                <div className="mt-4 flex items-center justify-center gap-2">
-                  <span className="text-md text-black/90">
-                    Custom:
-                  </span>
-            
-                  <input
-                    id="custom-duration"
-                    type="number"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    min="1"
-                    max="180"
-                    className="w-12 h-8 bg-white/70 rounded border text-center text-black/90 shadow-sm focus:border-stone-500 focus:ring focus:ring-stone-200 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0"
-                    style={{ MozAppearance: "textfield" }}
-                    value={inputValue}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setInputValue(val);
-                      if (val !== "") {
-                        const value = parseInt(val);
-                        if (!isNaN(value) && value > 0) {
-                          handleDurationChange(value);
-                        }
-                      }
-                    }}
-                    onBlur={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (isNaN(value) || value < 1) {
-                        handleDurationChange(1);
-                        setInputValue("1");
-                      } else if (value > 180) {
-                        handleDurationChange(180);
-                        setInputValue("180");
-                      }
-                    }}
-                  />
-                  <span className="text-md text-black/90">
-                    mins
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
           {/* Quote */}

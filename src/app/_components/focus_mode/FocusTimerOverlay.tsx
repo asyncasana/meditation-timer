@@ -38,6 +38,7 @@ return (
         className="absolute top-6 right-8 text-3xl text-white opacity-50 transition hover:opacity-100"
         onClick={onExit}
         aria-label="Exit focus mode"
+        title="Exit focus mode"
       >
         ×
       </button>
@@ -88,6 +89,8 @@ return (
         <button
           className="mt-10 rounded-full bg-white/80 px-8 py-3 text-xl font-medium text-stone-800 shadow hover:bg-white"
           onClick={onPauseToggle}
+          aria-label="Pause/Start"
+          title={isRunning ? "Pause" : "Start"}
         >
           {isRunning ? "Pause" : "Start"}
         </button>
@@ -97,6 +100,7 @@ return (
         className="absolute top-6 left-8 text-2xl text-white opacity-60 transition hover:opacity-100"
         onClick={onToggleSound}
         aria-label="Toggle sound"
+        title="Toggle sound"
       >
         {soundEnabled ? (
           // Sound ON icon
