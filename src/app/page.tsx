@@ -13,6 +13,7 @@ export default function Home() {
   const [soundEnabled, setSoundEnabled] = useState(true); // Controls whether ambient sounds should play during timer session
   const [inputValue, setInputValue] = useState<string>(duration.toString()); // Handles the custom duration input field
   const [focusMode, setFocusMode] = useState(false); // Boolean to track if focus mode is active
+  const [bgLoaded, setBgLoaded] = useState(false); // Boolean to track if background image is loaded
 
   // 2. Sound references
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -20,6 +21,14 @@ export default function Home() {
   const isAmbientPlayingRef = useRef(false);
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const secondsRef = useRef(duration * 60);
+
+  // 3. Image loading effect
+  // This effect runs once when the component mounts
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = "/images/waves.jpg";
+    img.onload = () => setBgLoaded(true);
+  }, []);
 
   // 3. Initialize end sound
   // This effect runs once when the component mounts
@@ -256,8 +265,7 @@ export default function Home() {
         <div
           className="absolute inset-0 z-50 bg-cover bg-center opacity-40"
           style={{
-            backgroundImage:
-              "url('images/waves.jpg')",
+            backgroundImage: "url('images/waves.jpg')",
           }}
         />
         <div className="absolute inset-0 bg-black/80" />
@@ -267,6 +275,16 @@ export default function Home() {
       <main
         className={`relative z-10 flex min-h-screen flex-col items-center justify-center text-stone-100 transition-all duration-500 ease-in-out ${focusMode ? "pointer-events-none translate-y-20 opacity-0" : "translate-y-0 opacity-80"} `}
       >
+        {/* Loader overlay while background image loads */}
+        {!bgLoaded && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+            <img
+              src="/apple-touch-icon.png"
+              alt="MindfulMinutes Logo"
+              className="h-24 w-24"
+            />
+          </div>
+        )}
         <div className="container flex max-w-3xl flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-center text-4xl font-bold tracking-wide drop-shadow-lg">
             <span className="text-black/90">Mindful</span>
@@ -274,9 +292,8 @@ export default function Home() {
           </h1>
           <div className="shadow-smbackdrop-blur-md w-full max-w-md rounded-2xl bg-white/70 p-8 shadow-xl">
             <div className="space-y-6 text-center">
-
               {/* Duration selection */}
-              <div className="mb-10 mt-5">
+              <div className="mt-5 mb-10">
                 <h2 className="mb-6 text-lg font-normal text-black/90">
                   Select duration in minutes
                 </h2>
@@ -288,7 +305,7 @@ export default function Home() {
                       type="button"
                       key={min}
                       onClick={() => handleDurationChange(min)}
-                      className={`w-17 h-11 rounded-full px-5 py-2 transition ${
+                      className={`h-11 w-17 rounded-full px-5 py-2 transition ${
                         duration === min
                           ? "bg-stone-700 text-white"
                           : "border border-stone-200 bg-white text-stone-800 hover:bg-stone-200"
@@ -417,7 +434,6 @@ export default function Home() {
                   )}
                 </button>
               </div>
-
             </div>
           </div>
           {/* Quote */}
