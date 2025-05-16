@@ -265,14 +265,14 @@ export default function Home() {
 
       {/* Page content */}
       <main
-        className={`relative z-10 flex min-h-screen flex-col items-center justify-center text-stone-100 transition-all duration-500 ease-in-out ${focusMode ? "pointer-events-none translate-y-20 opacity-0" : "translate-y-0 opacity-60"} `}
+        className={`relative z-10 flex min-h-screen flex-col items-center justify-center text-stone-100 transition-all duration-500 ease-in-out ${focusMode ? "pointer-events-none translate-y-20 opacity-0" : "translate-y-0 opacity-80"} `}
       >
         <div className="container flex max-w-3xl flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-center text-4xl font-light tracking-wide">
-            <span className="text-stone-100">Mindful</span>
-            <span className="text-stone-300">Minutes</span>
+          <h1 className="text-center text-4xl font-bold tracking-wide drop-shadow-lg">
+            <span className="text-black/90">Mindful</span>
+            <span className="text-white/90">Minutes</span>
           </h1>
-          <div className="w-full max-w-md rounded-2xl  bg-white/50 p-8 shadow-smbackdrop-blur-md shadow-xl">
+          <div className="w-full max-w-md rounded-2xl  bg-white/70 p-8 shadow-smbackdrop-blur-md shadow-xl">
             <div className="text-center space-y-6">
               {/* Control buttons */}
               <div className="mb-12 flex items-center justify-center gap-4">
@@ -299,7 +299,7 @@ export default function Home() {
                       setHasCompleted(false);
                     }
                   }}
-                  className="rounded-full bg-stone-600 px-8 py-3 text-lg font-medium text-white shadow-sm transition hover:bg-stone-500 disabled:opacity-50"
+                  className="rounded-full bg-stone-800 px-8 py-3 text-lg font-medium text-white shadow-sm transition hover:bg-stone-600 disabled:opacity-50"
                 >
                   {isRunning ? "Pause" : "Start"}
                 </button>
@@ -308,7 +308,7 @@ export default function Home() {
                 <button
                   onClick={toggleSound}
                   aria-label={soundEnabled ? "Mute sound" : "Unmute sound"}
-                  className={`flex items-center justify-center rounded-full bg-stone-600 p-3 text-white shadow-sm transition hover:bg-stone-500 disabled:opacity-50`}
+                  className={`flex items-center justify-center rounded-full bg-stone-800 p-3 text-white shadow-sm transition hover:bg-stone-600 disabled:opacity-50`}
                   title={soundEnabled ? "Mute sound" : "Unmute sound"}
                   type="button"
                 >
@@ -349,7 +349,7 @@ export default function Home() {
 
               {/* Duration selection */}
               <div className="mb-6">
-                <h3 className="mb-3 font-normal text-stone-700">
+                <h3 className="mb-3 font-normal text-black/90">
                   Select duration in minutes
                 </h3>
                 <div className="flex flex-wrap justify-center gap-2">
@@ -357,10 +357,10 @@ export default function Home() {
                     <button
                       key={min}
                       onClick={() => handleDurationChange(min)}
-                      className={`rounded-full px-4 py-2 transition ${
+                      className={`rounded-full px-5 py-2 transition ${
                         duration === min
-                          ? "bg-stone-500 text-white"
-                          : "border border-stone-200 bg-stone-100 text-stone-800 hover:bg-stone-200"
+                          ? "bg-stone-700 text-white"
+                          : "border border-stone-200 bg-white text-stone-800 hover:bg-stone-200"
                       }`}
                     >
                       {min}
@@ -369,7 +369,7 @@ export default function Home() {
                 </div>
                 {/* Custom duration input */}
                 <div className="mt-4 flex items-center justify-center gap-2">
-                  <span className="ml-2 text-md text-stone-700">
+                  <span className="ml-2 text-md text-black/90">
                     Or enter a custom duration:
                   </span>
             
@@ -380,7 +380,7 @@ export default function Home() {
                     pattern="[0-9]*"
                     min="1"
                     max="180"
-                    className="w-16 rounded border text-center"
+                    className="w-16 rounded border text-center text-black/90 shadow-sm focus:border-stone-500 focus:ring focus:ring-stone-200"
                     value={inputValue}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -403,7 +403,7 @@ export default function Home() {
                       }
                     }}
                   />
-                  <span className="ml-2 text-md text-stone-700">
+                  <span className="ml-2 text-md text-black/90">
                     mins
                   </span>
                 </div>
@@ -411,7 +411,7 @@ export default function Home() {
             </div>
           </div>
           {/* Quote */}
-          <div className="mt-8 text-center text-stone-200">
+          <div className="mt-8 text-center text-white">
             <p className="font-light italic">
               &ldquo;Breathe in peace, breathe out tension.&rdquo;
             </p>

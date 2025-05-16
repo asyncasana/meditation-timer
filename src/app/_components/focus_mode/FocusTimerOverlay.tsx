@@ -47,7 +47,7 @@ return (
         className={`
           relative z-10 flex flex-col items-center
           transition-all duration-500 ease-out
-          opacity-100 translate-y-0
+          opacity-70 translate-y-0
         `}
       >
         <div className="relative flex h-[220px] w-[220px] items-center justify-center">
