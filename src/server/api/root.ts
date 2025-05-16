@@ -1,24 +1,16 @@
-import { meditationRouter } from "@/server/api/routers/meditation";
-import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { createTRPCRouter } from "@/server/api/trpc";
 
-/**
- * This is the primary router for your server.
- *
- * All routers added in /api/routers should be manually added here.
- */
+// Import your routers here as you add them, e.g.:
+// import { meditationRouter } from "./routers/meditation";
+
 export const appRouter = createTRPCRouter({
-  meditation: meditationRouter, 
-
+  // meditation: meditationRouter,
+  // Add more routers here as needed
 });
 
-// export type definition of API
+// Export type definition of API
 export type AppRouter = typeof appRouter;
 
-/**
- * Create a server-side caller for the tRPC API.
- * @example
- * const trpc = createCaller(createContext);
- * const res = await trpc.post.all();
- *       ^? Post[]
- */
-export const createCaller = createCallerFactory(appRouter);
+
+// Added because server.ts requires a createCaller function
+export const createCaller = (context: any) => appRouter.createCaller(context);
