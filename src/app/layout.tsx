@@ -6,9 +6,13 @@ import { Geist } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/react";
 
 export const metadata: Metadata = {
-  title: "MindfulMinutes - Meditation Practice App",
+  title: "MindfulMinutes",
   description: "A mindful meditation timer to establish your practice",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [
+    { rel: "icon", url: "/favicon.ico" },
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
+    { rel: "manifest", url: "/manifest.json" },
+],
 };
 
 const geist = Geist({
