@@ -16,6 +16,7 @@ export default function Home() {
   const [bgLoaded, setBgLoaded] = useState(false); // Boolean to track if background image is loaded
   const [minLoaderDone, setMinLoaderDone] = useState(false); // Boolean to track if the minimum loader time has passed
   const [showLoader, setShowLoader] = useState(true); // Boolean to track if the loader should be shown
+  const [endSoundUnlocked, setEndSoundUnlocked] = useState(false); // Boolean to track if the end sound is unlocked
 
   // 2. Sound references
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -73,7 +74,24 @@ export default function Home() {
     };
   }, []);
 
-  // 7. Initialize ambient sound
+  // 7. Unlock end sound
+  // This function is called when the timer ends
+  const unlockEndSound = () => {
+    if (!endSoundUnlocked && endSoundRef.current) {
+      endSoundRef.current
+        .play()
+        .then(() => {
+          if (endSoundRef.current) {
+            endSoundRef.current.pause();
+            endSoundRef.current.currentTime = 0;
+          }
+          setEndSoundUnlocked(true);
+        })
+        .catch(() => {});
+    }
+  };
+
+  // 8. Initialize ambient sound
   // This effect runs once when the component mounts
   useEffect(() => {
     try {
@@ -101,7 +119,7 @@ export default function Home() {
     };
   }, []);
 
-  // 8. Play ambient sound
+  // 9. Play ambient sound
   // This function is called when the timer starts
   const playAmbientSound = () => {
     if (!soundEnabled || !ambientSoundRef.current) return;
@@ -127,7 +145,7 @@ export default function Home() {
       });
   };
 
-  // 9. Stop ambient sound
+  // 10. Stop ambient sound
   // This function is called when the timer is stopped or completed
   const stopAmbientSound = () => {
     if (keepAliveIntervalRef.current) {
@@ -147,7 +165,7 @@ export default function Home() {
     }
   };
 
-  // 10. Timer logic
+  // 11. Timer logic
   // This effect runs when the timer is running or when the duration changes
   useEffect(() => {
     // Only update input value when duration changes
@@ -208,7 +226,7 @@ export default function Home() {
     };
   }, [isRunning, duration, soundEnabled]);
 
-  // 11. Change duration of the timer
+  // 12. Change duration of the timer
   // This function is called when the user selects a new duration
   const handleDurationChange = (minutes: number) => {
     setDuration(minutes);
@@ -223,7 +241,7 @@ export default function Home() {
     }
   };
 
-  // 12. Reset timer
+  // 13. Reset timer
   // This function is called when the user clicks the reset button
   const resetTimer = () => {
     setIsRunning(false);
@@ -243,7 +261,7 @@ export default function Home() {
     }
   };
 
-  // 13. Toggle sound
+  // 14. Toggle sound
   // This function is called when the user clicks the sound toggle button
   const toggleSound = () => {
     const newSoundState = !soundEnabled;
@@ -261,7 +279,7 @@ export default function Home() {
     }
   };
 
-  // 14. Handle pause/resume
+  // 15. Handle pause/resume
   // This function is called when the user clicks the pause button
   const handlePauseToggle = () => {
     setIsRunning((prev) => {
@@ -278,7 +296,7 @@ export default function Home() {
     });
   };
 
-  // 15. UI component
+  // 16. UI component
   return (
     <div className="relative min-h-screen w-full overflow-hidden font-sans">
       {/* Background image and dark overlay */}
@@ -391,6 +409,8 @@ export default function Home() {
                 {/* Start/Pause button */}
                 <button
                   onClick={() => {
+                    unlockEndSound(); // <-- Unlock bell sound on first click
+
                     if (secondsRef.current <= 0) {
                       secondsRef.current = duration * 60;
                       setRemainingSeconds(duration * 60);
