@@ -412,13 +412,7 @@ export default function Home() {
       </main>
 
       {/* Focus overlay content */}
-      <div
-        className={`fixed inset-0 z-20 flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${
-          focusMode
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none -translate-y-full opacity-0"
-        } `}
-      >
+      {focusMode && (
         <FocusTimerOverlay
           remainingSeconds={remainingSeconds}
           isRunning={isRunning}
@@ -432,7 +426,7 @@ export default function Home() {
           onToggleSound={toggleSound}
           unlockEndSound={unlockEndSound}
         />
-      </div>
+      )}
     </div>
   );
 }

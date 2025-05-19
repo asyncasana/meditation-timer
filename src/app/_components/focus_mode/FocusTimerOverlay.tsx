@@ -27,18 +27,29 @@ export default function FocusTimerOverlay({
   const progress = 1 - remainingSeconds / (duration * 60);
   const [show, setShow] = useState(false);
 
+  // Only trigger fade-in on mount
   useEffect(() => {
-    // Trigger animation on mount
     setShow(true);
-    return () => setShow(false);
   }, []);
 
+  // Fade out and call onExit after animation (X button only)
+  const handleFadeOut = () => {
+    setShow(false);
+    setTimeout(() => {
+      onExit();
+    }, 500); // Match your CSS transition duration
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center">
+    <div
+      className={`fixed inset-0 flex items-center justify-center transition-opacity duration-500 ${
+        show ? "opacity-100" : "opacity-0"
+      }`}
+    >
       {/* X button */}
       <button
         className="absolute top-6 right-8 text-3xl text-white opacity-50 transition hover:opacity-100"
-        onClick={onExit}
+        onClick={handleFadeOut}
         aria-label="Exit focus mode"
         title="Exit focus mode"
       >
