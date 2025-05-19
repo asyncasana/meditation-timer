@@ -10,6 +10,7 @@ type Props = {
   duration: number;
   soundEnabled: boolean;
   onToggleSound: () => void;
+  unlockEndSound: () => void;
 };
 
 export default function FocusTimerOverlay({
@@ -20,6 +21,7 @@ export default function FocusTimerOverlay({
   duration,
   soundEnabled,
   onToggleSound,
+  unlockEndSound,
 }: Props) {
   // Calculate progress (0 to 1)
   const progress = 1 - remainingSeconds / (duration * 60);
@@ -84,7 +86,10 @@ export default function FocusTimerOverlay({
         {/* Pause/Start button */}
         <button
           className="mt-10 rounded-full bg-white/80 px-8 py-3 text-xl font-medium text-stone-800 shadow hover:bg-white"
-          onClick={onPauseToggle}
+          onClick={() => {
+            unlockEndSound();
+            onPauseToggle();
+          }}
           aria-label="Pause/Start"
           title={isRunning ? "Pause" : "Start"}
         >
@@ -133,7 +138,7 @@ export default function FocusTimerOverlay({
         )}
       </button>
 
-      <div className="mb-5 absolute right-0 bottom-2 left-0 z-50 text-center text-xs text-white/70">
+      <div className="absolute right-0 bottom-2 left-0 z-50 mb-5 text-center text-xs text-white/70">
         Photo by{" "}
         <a
           href="https://unsplash.com/@sotti?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"

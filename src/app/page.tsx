@@ -4,38 +4,40 @@ import { useState, useEffect, useRef } from "react";
 import FocusTimerOverlay from "./_components/focus_mode/FocusTimerOverlay";
 
 export default function Home() {
+  // State
   const [duration, setDuration] = useState(5);
   const [remainingSeconds, setRemainingSeconds] = useState(duration * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [inputValue, setInputValue] = useState<string>(duration.toString());
+  const [inputValue, setInputValue] = useState(duration.toString());
   const [focusMode, setFocusMode] = useState(false);
   const [bgLoaded, setBgLoaded] = useState(false);
   const [minLoaderDone, setMinLoaderDone] = useState(false);
   const [showLoader, setShowLoader] = useState(true);
   const [endSoundUnlocked, setEndSoundUnlocked] = useState(false);
 
+  // Refs
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
   const ambientSoundRef = useRef<HTMLAudioElement | null>(null);
   const isAmbientPlayingRef = useRef(false);
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const secondsRef = useRef(duration * 60);
 
-  // 1. Load background image
+  // 1. Preload background image
   useEffect(() => {
     const img = new window.Image();
     img.src = "/images/waves.jpg";
     img.onload = () => setBgLoaded(true);
   }, []);
 
-  // 2. Enforce minimum loader time
+  // 2. Minimum loader time
   useEffect(() => {
     const timer = setTimeout(() => setMinLoaderDone(true), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // 3. Loader logic
+  // 3. Loader fade logic
   useEffect(() => {
     if (bgLoaded && minLoaderDone) {
       const timeout = setTimeout(() => setShowLoader(false), 700);
@@ -45,7 +47,7 @@ export default function Home() {
     }
   }, [bgLoaded, minLoaderDone]);
 
-  // 4. Initialise ambient sound
+  // 4. Ambient sound setup
   useEffect(() => {
     try {
       ambientSoundRef.current = new Audio("/sounds/waves-loop.mp3");
@@ -55,15 +57,15 @@ export default function Home() {
     } catch (error) {
       console.error("Error initializing ambient sound:", error);
     }
-
     return () => {
       ambientSoundRef.current?.pause();
       ambientSoundRef.current!.src = "";
-      if (keepAliveIntervalRef.current) clearInterval(keepAliveIntervalRef.current);
+      if (keepAliveIntervalRef.current)
+        clearInterval(keepAliveIntervalRef.current);
     };
   }, []);
 
-  // 5. Initialise end sound WITHOUT triggering it on iPhone
+  // 5. End sound setup
   useEffect(() => {
     try {
       const sound = new Audio("/sounds/sound-bowl.mp3");
@@ -73,28 +75,41 @@ export default function Home() {
     } catch (error) {
       console.error("Error setting up end sound:", error);
     }
-
     return () => {
       endSoundRef.current?.pause();
       endSoundRef.current!.src = "";
     };
   }, []);
 
-  // 6. Unlock end sound - user interaction must happen first
+  // 6. Unlock end sound (for iOS/Chrome autoplay policy)
   const unlockEndSound = () => {
-    if (!endSoundUnlocked && endSoundRef.current) {
-      setEndSoundUnlocked(true);
+    if (endSoundRef.current) {
+      const originalVolume = endSoundRef.current.volume;
+      endSoundRef.current.volume = 0;
+      endSoundRef.current
+        .play()
+        .then(() => {
+          if (endSoundRef.current) {
+            endSoundRef.current.pause();
+            endSoundRef.current.currentTime = 0;
+            endSoundRef.current.volume = originalVolume;
+          }
+          setEndSoundUnlocked(true);
+        })
+        .catch(() => {
+          if (endSoundRef.current) {
+            endSoundRef.current.volume = originalVolume;
+          }
+        });
     }
   };
 
   // 7. Play ambient sound
   const playAmbientSound = () => {
     if (!soundEnabled || !ambientSoundRef.current) return;
-
     if (ambientSoundRef.current.paused) {
       ambientSoundRef.current.currentTime = 0;
     }
-
     ambientSoundRef.current
       .play()
       .then(() => {
@@ -114,7 +129,6 @@ export default function Home() {
       clearInterval(keepAliveIntervalRef.current);
       keepAliveIntervalRef.current = null;
     }
-
     if (ambientSoundRef.current) {
       ambientSoundRef.current.pause();
       ambientSoundRef.current.currentTime = 0;
@@ -125,14 +139,11 @@ export default function Home() {
   // 9. Timer logic
   useEffect(() => {
     setInputValue(duration.toString());
-
     if (!isRunning && hasCompleted) {
       secondsRef.current = duration * 60;
       setRemainingSeconds(secondsRef.current);
     }
-
     let interval: NodeJS.Timeout | null = null;
-
     if (isRunning) {
       interval = setInterval(() => {
         if (secondsRef.current <= 1) {
@@ -140,12 +151,15 @@ export default function Home() {
           setHasCompleted(true);
           setRemainingSeconds(0);
           stopAmbientSound();
-
           if (endSoundRef.current && endSoundUnlocked) {
             endSoundRef.current.currentTime = 0;
             endSoundRef.current.play().catch((err) => {
               console.error("Failed to play end sound:", err);
             });
+            // Vibrate device for 500ms if supported
+            if (typeof window !== "undefined" && "vibrate" in navigator) {
+              navigator.vibrate(500);
+            }
           }
         } else {
           secondsRef.current -= 1;
@@ -153,58 +167,41 @@ export default function Home() {
         }
       }, 1000);
     }
-
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [isRunning, duration, endSoundUnlocked]);
 
-  // 12. Change duration of the timer
-  // This function is called when the user selects a new duration
+  // 10. Change duration
   const handleDurationChange = (minutes: number) => {
     setDuration(minutes);
-    secondsRef.current = minutes * 60; // Update the ref
-    setRemainingSeconds(minutes * 60); // Update display
+    secondsRef.current = minutes * 60;
+    setRemainingSeconds(minutes * 60);
     setIsRunning(false);
     setHasCompleted(false);
-
-    // Stop ambient sound if playing
-    if (isAmbientPlayingRef.current) {
-      stopAmbientSound();
-    }
+    if (isAmbientPlayingRef.current) stopAmbientSound();
   };
 
-  // 13. Reset timer
-  // This function is called when the user clicks the reset button
+  // 11. Reset timer
   const resetTimer = () => {
     setIsRunning(false);
-    secondsRef.current = duration * 60; // Reset the ref
-    setRemainingSeconds(duration * 60); // Update display
+    secondsRef.current = duration * 60;
+    setRemainingSeconds(duration * 60);
     setHasCompleted(false);
-
-    // Stop ambient sound if playing
-    if (isAmbientPlayingRef.current) {
-      stopAmbientSound();
-    }
-
-    // Reset end sound
+    if (isAmbientPlayingRef.current) stopAmbientSound();
     if (endSoundRef.current) {
       endSoundRef.current.pause();
       endSoundRef.current.currentTime = 0;
     }
   };
 
-  // 14. Toggle sound
-  // This function is called when the user clicks the sound toggle button
+  // 12. Toggle sound
   const toggleSound = () => {
     const newSoundState = !soundEnabled;
     setSoundEnabled(newSoundState);
-
     if (!newSoundState) {
-      // Turn sound off
       stopAmbientSound();
     } else if (newSoundState && isRunning && ambientSoundRef.current) {
-      // Turn sound on while timer is running
       ambientSoundRef.current.play().catch((e) => {
         console.error("Failed to resume ambient sound:", e);
       });
@@ -212,57 +209,53 @@ export default function Home() {
     }
   };
 
-  // 15. Handle pause/resume
-  // This function is called when the user clicks the pause button
+  // 13. Pause/resume handler
   const handlePauseToggle = () => {
     setIsRunning((prev) => {
       const newRunning = !prev;
-      // If resuming and sound is enabled, play ambient sound
-      if (newRunning && soundEnabled) {
-        playAmbientSound();
-      }
-      // If pausing, stop ambient sound
-      if (!newRunning && isAmbientPlayingRef.current) {
-        stopAmbientSound();
-      }
+      if (newRunning && soundEnabled) playAmbientSound();
+      if (!newRunning && isAmbientPlayingRef.current) stopAmbientSound();
       return newRunning;
     });
   };
 
-  // 16. UI component
+  // --- UI ---
   return (
     <div className="relative min-h-screen w-full overflow-hidden font-sans">
       {/* Background image and dark overlay */}
       <div className="fixed inset-0 z-0">
         <div
           className="absolute inset-0 z-50 bg-cover bg-center opacity-40"
-          style={{
-            backgroundImage: "url('images/waves.jpg')",
-          }}
+          style={{ backgroundImage: "url('images/waves.jpg')" }}
         />
         <div className="absolute inset-0 bg-black/80" />
       </div>
 
-      {/* Page content */}
+      {/* Loader overlay */}
+      {showLoader && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700 ${
+            bgLoaded && minLoaderDone
+              ? "pointer-events-none opacity-0"
+              : "opacity-100"
+          }`}
+        >
+          <img
+            src="/apple-touch-icon.png"
+            alt="MindfulMinutes Logo"
+            className="h-24 w-24"
+          />
+        </div>
+      )}
+
+      {/* Main content */}
       <main
-        className={`relative z-10 flex min-h-screen flex-col items-center justify-center text-stone-100 transition-all duration-500 ease-in-out ${focusMode ? "pointer-events-none translate-y-20 opacity-0" : "translate-y-0 opacity-80"} `}
+        className={`relative z-10 flex min-h-screen flex-col items-center justify-center text-stone-100 transition-all duration-500 ease-in-out ${
+          focusMode
+            ? "pointer-events-none translate-y-20 opacity-0"
+            : "translate-y-0 opacity-80"
+        } `}
       >
-        {/* Loader overlay while background image loads */}
-        {showLoader && (
-          <div
-            className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700 ${
-              bgLoaded && minLoaderDone
-                ? "pointer-events-none opacity-0"
-                : "opacity-100"
-            }`}
-          >
-            <img
-              src="/apple-touch-icon.png"
-              alt="MindfulMinutes Logo"
-              className="h-24 w-24"
-            />
-          </div>
-        )}
         <div className="container flex max-w-3xl flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-center text-4xl font-bold tracking-wide drop-shadow-lg">
             <span className="text-black/90">Mindful</span>
@@ -293,7 +286,6 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-
                 {/* Custom duration input */}
                 <div className="mt-4 flex items-center justify-center gap-2">
                   <span className="text-md text-black/90">Custom:</span>
@@ -342,20 +334,15 @@ export default function Home() {
                 {/* Start/Pause button */}
                 <button
                   onClick={() => {
-                    unlockEndSound(); // <-- Unlock bell sound on first click
-
+                    unlockEndSound();
                     if (secondsRef.current <= 0) {
                       secondsRef.current = duration * 60;
                       setRemainingSeconds(duration * 60);
                     }
                     const newRunningState = !isRunning;
                     setIsRunning(newRunningState);
-                    if (newRunningState && soundEnabled) {
-                      playAmbientSound();
-                    }
-                    if (newRunningState && !focusMode) {
-                      setFocusMode(true);
-                    }
+                    if (newRunningState && soundEnabled) playAmbientSound();
+                    if (newRunningState && !focusMode) setFocusMode(true);
                     if (hasCompleted) {
                       if (endSoundRef.current) {
                         endSoundRef.current.pause();
@@ -371,7 +358,6 @@ export default function Home() {
                 >
                   Start
                 </button>
-
                 {/* Sound toggle button */}
                 <button
                   onClick={toggleSound}
@@ -427,7 +413,11 @@ export default function Home() {
 
       {/* Focus overlay content */}
       <div
-        className={`fixed inset-0 z-20 flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${focusMode ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-full opacity-0"} `}
+        className={`fixed inset-0 z-20 flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${
+          focusMode
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-full opacity-0"
+        } `}
       >
         <FocusTimerOverlay
           remainingSeconds={remainingSeconds}
@@ -440,6 +430,7 @@ export default function Home() {
           duration={duration}
           soundEnabled={soundEnabled}
           onToggleSound={toggleSound}
+          unlockEndSound={unlockEndSound}
         />
       </div>
     </div>
