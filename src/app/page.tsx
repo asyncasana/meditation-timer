@@ -1,136 +1,99 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-// import Link from "next/link";
 import FocusTimerOverlay from "./_components/focus_mode/FocusTimerOverlay";
 
 export default function Home() {
-  // 1. State variables
-  const [duration, setDuration] = useState(5); // Stores the meditation duration in minutes (default: 5)
-  const [remainingSeconds, setRemainingSeconds] = useState(duration * 60); // Tracks the countdown in seconds based on duration
-  const [isRunning, setIsRunning] = useState(false); // Boolean flag for whether the timer is active
-  const [hasCompleted, setHasCompleted] = useState(false); // Boolean to track if the session finished
-  const [soundEnabled, setSoundEnabled] = useState(true); // Controls whether ambient sounds should play during timer session
-  const [inputValue, setInputValue] = useState<string>(duration.toString()); // Handles the custom duration input field
-  const [focusMode, setFocusMode] = useState(false); // Boolean to track if focus mode is active
-  const [bgLoaded, setBgLoaded] = useState(false); // Boolean to track if background image is loaded
-  const [minLoaderDone, setMinLoaderDone] = useState(false); // Boolean to track if the minimum loader time has passed
-  const [showLoader, setShowLoader] = useState(true); // Boolean to track if the loader should be shown
-  const [endSoundUnlocked, setEndSoundUnlocked] = useState(false); // Boolean to track if the end sound is unlocked
+  const [duration, setDuration] = useState(5);
+  const [remainingSeconds, setRemainingSeconds] = useState(duration * 60);
+  const [isRunning, setIsRunning] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [inputValue, setInputValue] = useState<string>(duration.toString());
+  const [focusMode, setFocusMode] = useState(false);
+  const [bgLoaded, setBgLoaded] = useState(false);
+  const [minLoaderDone, setMinLoaderDone] = useState(false);
+  const [showLoader, setShowLoader] = useState(true);
+  const [endSoundUnlocked, setEndSoundUnlocked] = useState(false);
 
-  // 2. Sound references
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
   const ambientSoundRef = useRef<HTMLAudioElement | null>(null);
   const isAmbientPlayingRef = useRef(false);
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const secondsRef = useRef(duration * 60);
 
-  // 3. Image loading effect
-  // This effect runs once when the component mounts
+  // 1. Load background image
   useEffect(() => {
     const img = new window.Image();
     img.src = "/images/waves.jpg";
     img.onload = () => setBgLoaded(true);
   }, []);
 
-  // 4. Minimum loader time effect
-  // This effect runs once when the component mounts
+  // 2. Enforce minimum loader time
   useEffect(() => {
     const timer = setTimeout(() => setMinLoaderDone(true), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // 5. Show loader effect
+  // 3. Loader logic
   useEffect(() => {
     if (bgLoaded && minLoaderDone) {
-      // Wait for the fade-out transition before removing from DOM
-      const timeout = setTimeout(() => setShowLoader(false), 700); // match duration-700
+      const timeout = setTimeout(() => setShowLoader(false), 700);
       return () => clearTimeout(timeout);
     } else {
       setShowLoader(true);
     }
   }, [bgLoaded, minLoaderDone]);
 
-  // 6. Initialize end sound
-  // This effect runs once when the component mounts
-  useEffect(() => {
-    try {
-      endSoundRef.current = new Audio("/sounds/sound-bowl.mp3");
-
-      if (endSoundRef.current) {
-        endSoundRef.current.volume = 0.7;
-        endSoundRef.current.preload = "auto";
-        console.log("End sound initialized");
-      }
-    } catch (error) {
-      console.error("Error initializing end sound:", error);
-    }
-
-    return () => {
-      if (endSoundRef.current) {
-        endSoundRef.current.pause();
-        endSoundRef.current.src = "";
-      }
-    };
-  }, []);
-
-  // 7. Unlock end sound
-  // This function is called when the timer ends
-  const unlockEndSound = () => {
-    if (!endSoundUnlocked && endSoundRef.current) {
-      endSoundRef.current
-        .play()
-        .then(() => {
-          if (endSoundRef.current) {
-            endSoundRef.current.pause();
-            endSoundRef.current.currentTime = 0;
-          }
-          setEndSoundUnlocked(true);
-        })
-        .catch((err) => {
-          // Optionally log or ignore
-        });
-    }
-  };
-
-  // 8. Initialize ambient sound
-  // This effect runs once when the component mounts
+  // 4. Initialise ambient sound
   useEffect(() => {
     try {
       ambientSoundRef.current = new Audio("/sounds/waves-loop.mp3");
-
-      if (ambientSoundRef.current) {
-        ambientSoundRef.current.loop = true;
-        ambientSoundRef.current.volume = 0.5;
-        ambientSoundRef.current.preload = "auto";
-        console.log("Ambient sound initialized");
-      }
+      ambientSoundRef.current.loop = true;
+      ambientSoundRef.current.volume = 0.5;
+      ambientSoundRef.current.preload = "auto";
     } catch (error) {
       console.error("Error initializing ambient sound:", error);
     }
 
     return () => {
-      if (ambientSoundRef.current) {
-        ambientSoundRef.current.pause();
-        ambientSoundRef.current.src = "";
-      }
-
-      if (keepAliveIntervalRef.current) {
-        clearInterval(keepAliveIntervalRef.current);
-      }
+      ambientSoundRef.current?.pause();
+      ambientSoundRef.current!.src = "";
+      if (keepAliveIntervalRef.current) clearInterval(keepAliveIntervalRef.current);
     };
   }, []);
 
-  // 9. Play ambient sound
-  // This function is called when the timer starts
+  // 5. Initialise end sound WITHOUT triggering it on iPhone
+  useEffect(() => {
+    try {
+      const sound = new Audio("/sounds/sound-bowl.mp3");
+      sound.volume = 0.7;
+      sound.preload = "auto";
+      endSoundRef.current = sound;
+    } catch (error) {
+      console.error("Error setting up end sound:", error);
+    }
+
+    return () => {
+      endSoundRef.current?.pause();
+      endSoundRef.current!.src = "";
+    };
+  }, []);
+
+  // 6. Unlock end sound - user interaction must happen first
+  const unlockEndSound = () => {
+    if (!endSoundUnlocked && endSoundRef.current) {
+      setEndSoundUnlocked(true);
+    }
+  };
+
+  // 7. Play ambient sound
   const playAmbientSound = () => {
     if (!soundEnabled || !ambientSoundRef.current) return;
 
     if (ambientSoundRef.current.paused) {
       ambientSoundRef.current.currentTime = 0;
     }
-
-    ambientSoundRef.current.loop = true;
 
     ambientSoundRef.current
       .play()
@@ -142,13 +105,10 @@ export default function Home() {
           }
         }, 10000);
       })
-      .catch((error) => {
-        console.error("Failed to play ambient sound:", error);
-      });
+      .catch((err) => console.error("Failed to play ambient sound:", err));
   };
 
-  // 10. Stop ambient sound
-  // This function is called when the timer is stopped or completed
+  // 8. Stop ambient sound
   const stopAmbientSound = () => {
     if (keepAliveIntervalRef.current) {
       clearInterval(keepAliveIntervalRef.current);
@@ -156,77 +116,48 @@ export default function Home() {
     }
 
     if (ambientSoundRef.current) {
-      console.log("Stopping ambient sound");
-      try {
-        ambientSoundRef.current.pause();
-        ambientSoundRef.current.currentTime = 0;
-        isAmbientPlayingRef.current = false;
-      } catch (error) {
-        console.error("Error stopping ambient sound:", error);
-      }
+      ambientSoundRef.current.pause();
+      ambientSoundRef.current.currentTime = 0;
+      isAmbientPlayingRef.current = false;
     }
   };
 
-  // 11. Timer logic
-  // This effect runs when the timer is running or when the duration changes
+  // 9. Timer logic
   useEffect(() => {
-    // Only update input value when duration changes
     setInputValue(duration.toString());
 
-    // Only reset timer when explicitly needed, NOT when just pausing
-    // This is the key change - we only reset if seconds is 0 (completed)
-    // OR if the duration has changed while timer was stopped
     if (!isRunning && hasCompleted) {
       secondsRef.current = duration * 60;
-      setRemainingSeconds(secondsRef.current); // Update display
+      setRemainingSeconds(secondsRef.current);
     }
 
     let interval: NodeJS.Timeout | null = null;
 
     if (isRunning) {
       interval = setInterval(() => {
-        // Use ref value to track seconds
         if (secondsRef.current <= 1) {
           setIsRunning(false);
           setHasCompleted(true);
-          setFocusMode(false); // Hide overlay when timer completes
+          setRemainingSeconds(0);
+          stopAmbientSound();
 
-          // Always play ending sound (notification is important regardless of sound state)
-          if (endSoundRef.current) {
+          if (endSoundRef.current && endSoundUnlocked) {
             endSoundRef.current.currentTime = 0;
-            endSoundRef.current
-              .play()
-              .catch((error) => console.log("End sound play failed:", error));
+            endSoundRef.current.play().catch((err) => {
+              console.error("Failed to play end sound:", err);
+            });
           }
-
-          // Stop ambient sound
-          if (isAmbientPlayingRef.current) {
-            stopAmbientSound();
-          }
-
-          secondsRef.current = 0;
-          setRemainingSeconds(0); // Update display
-          if (interval) {
-            clearInterval(interval);
-          } // Only clear if interval is set to avoid errors
         } else {
-          // Decrement the ref
           secondsRef.current -= 1;
-          // Update the state for display purposes only
           setRemainingSeconds(secondsRef.current);
         }
       }, 1000);
-    } else if (!isRunning) {
-      // Stop ambient sound if timer is paused
-      if (isAmbientPlayingRef.current) {
-        stopAmbientSound();
-      }
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, duration, soundEnabled]);
+  }, [isRunning, duration, endSoundUnlocked]);
 
   // 12. Change duration of the timer
   // This function is called when the user selects a new duration
