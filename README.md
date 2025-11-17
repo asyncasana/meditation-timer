@@ -1,5 +1,7 @@
 # MindfulMinutes – Meditation Timer
 
+🔗 **Live Demo:** https://meditation-timer-eta.vercel.app/
+
 A simple, modern meditation timer with a calming focus overlay and optional ambient sound.
 
 ## Features
