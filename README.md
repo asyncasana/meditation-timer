@@ -16,10 +16,10 @@ A simple, modern meditation timer with a calming focus overlay and optional ambi
 ## Mobile View
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/main/public/preview3.png" width="700" />
+  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/main/public/preview3.png" width="350" />
 </p>
 <p align="center">
-  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/main/public/preview4.png" width="700" />
+  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/main/public/preview4.png" width="350" />
 </p>
 
 ## Features
