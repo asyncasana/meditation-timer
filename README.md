@@ -4,6 +4,24 @@
 
 A simple, modern meditation timer with a calming focus overlay and optional ambient sound.
 
+## Preview
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/blob/main/public/preview1.png" width="700" />
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/blob/main/public/preview2.png" width="700" />
+</p>
+
+## Mobile View
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/blob/main/public/preview3.png" width="700" />
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/asyncasana/meditation-timer/blob/main/public/preview4.png" width="700" />
+</p>
+
 ## Features
 
 - ⏱️ **Customizable Timer**: Set your meditation duration
